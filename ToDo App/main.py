@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -14,20 +14,24 @@ class Todo(db.Model):
     desc = db.Column(db.String(200), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return f"{self.sno}-{self.title}--{self.desc}--{self.date_created}"
+    # def __repr__(self):
+    #     return f"{self.sno}-{self.title}--{self.desc}--{self.date_created}"
 
-@app.route("/")
+
+@app.route('/', methods=['GET', 'POST'])
 def hello_world():
-    db.session.add(Todo(title="Start working on flask",
-                        desc="We need to work on seting up sqlalchemy for flask application and learn he orm"
-                        ))
-    db.session.commit()
-    todos = db.session.execute(db.select(Todo).order_by(Todo.date_created)).all()
+    if request.method == 'POST':
+        if request.method == "POST":
+            todo = Todo(
+                title=request.form["title"],
+                desc=request.form["desc"]
+            )
+            db.session.add(todo)
+            db.session.commit()
+
+    todos = db.session.execute(db.select(Todo).order_by(Todo.date_created)).scalars()
 
     return render_template('index.html', todos=todos)
-
-
 
 
 @app.route('/products')
@@ -36,6 +40,4 @@ def products():
 
 
 if __name__ == "__main__":
-
     app.run(debug=True)
-
